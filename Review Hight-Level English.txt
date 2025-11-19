@@ -1,0 +1,87 @@
+**REVIEW HIGH-LEVEL – Evaluation of my initial implementation**
+
+==== - General problems of the application ====
+
+All tasks 1 - 5 were written in a single `main.py` file
+There is no separation into modules (data generation, cleaning, SQL, API, dashboard).
+There is no clear flow: the code runs in order, dependencies mix together.
+Uvicorn is started inside a script that already executes prints, resulting in freezes and unpredictable behavior.
+The dashboard is generated in Python, not from the API → does not respect the requirements.
+
+--- + What I should have done ---
+
+Separate the code into multiple files for easy maintenance and a clean, structured workflow
+
+* `build_data.py` → generation & validation
+* `analytics_polars.py` → analytical logic
+* `app.py` → FastAPI API
+* `index.html` → JS dashboard
+* `trades.db` → SQLite database
+
+
+==== - Initial problems in Task 1 – Load & Explore Data ====
+
+* I created Date & Time, then manually merged them which resulted in a complicated process that did not fully follow the requirement
+* I used Pandas and Polars in parallel which complicated the code without reason.
+* I did not introduce invalid data to clean later (0, -10, INVALID etc.).
+* I did not create an ID column for the table so I could easily track each row
+
+--- + What I should have done ---
+
+* Generate data using a single method that includes all columns with the correct data types
+* Generate also non-conforming data in order to remove it later in the cleaning stage
+* Create the data creation logic in another file to maintain the structure of the application
+* Create an ID that is sorted by TimeStamp to simulate real situations and easily track the data (as a linking column)
+
+
+==== - Initial problems in Task 2 – Data Cleaning ====
+
+* `dropna()` was applied on Pandas inside a loop → you lose valid data.
+* BUY/SELL validation was checked on the entire dataset, not just the Side column.
+* Anomalies were detected by iterating per column
+* Non-conforming data was not displayed
+
+--- + What I should have done ---
+
+* Use a more efficient and more stable structure for data cleaning
+* Display ID + invalid values in reporting
+* Clearly structure the issues (missing, invalid_qty, invalid_price etc.)
+
+
+==== - Initial problems in Task 3 – SQL Analytics ===
+
+* You populated the Trades table incorrectly, without using “;” at the end, which results in errors and the table not being populated
+* The net_position calculation was wrong, the Buy and Sell columns do not exist
+
+--- + What I should have done ---
+
+* Create a separate file for the code that handles SQL queries
+* Write SQL code without errors
+
+
+==== - Initial problems in Task 4 – API FastAPI ===
+
+* Endpoints returned functions, not results. The functions ended with “print()” which is not correct for HTML output
+* FastAPI was run inside the long script, which caused freezes.
+
+--- + What I should have done ---
+
+* Create the API separately
+* “/api/summary” must return clean JSON from the DB
+* “/api/trend/{symbol}” must return real data
+* The JS dashboard must call the API, not Python
+
+
+==== - Initial problems in Task 5 – Dashboard ===
+
+* Plotly was launched with “pie.show()” which opens a local window, not a web view.
+* No static HTML existed.
+* The API was not used.
+* No interactivity.
+* The website did not run properly
+
+--- + What I should have done ---
+
+* Create an HTML file for the website
+* Create the connection with the data correctly
+* Use Chart.js for interactive dashboards
