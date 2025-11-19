@@ -1,0 +1,88 @@
+REVIEW HIGH-LEVEL – Evaluarea implementării mele inițiale
+
+
+==== - Probleme generale ale aplicatiei ====
+
+Toate task-urile 1 - 5 erau scrise într-un singur fișier `main.py`
+Nu există separare pe module (data generation, cleaning, SQL, API, dashboard).
+Nu există flow clar: codul rulează în ordine, dependințele se amestecă.
+Uvicorn este pornit într-un script care deja execută printuri ce rezulta in blocaje si comportamente imprevizibile.
+Dashboard-ul este generat în Python, nu din API → nu respectă cerințele.
+
+--- + Ce ar fi trebuit sa fac ---
+
+Separare cod in mai multe fisiere pentru intretinere usoara si mod de lucru curat si structurat
+
+* `build_data.py` → generare & validare
+* `analytics_polars.py` → logica analitică
+* `app.py` → API FastAPI
+* `index.html` → dashboard JS
+* `trades.db` → baza SQLite
+
+
+==== - Probleme inițiale in Task 1 – Load & Explore Data ====
+
+* Am creat Date & Time, apoi le-ai lipit manual ceea ce a rezultat intr-un proces complicat care nu a urmat in totalitate cerinta
+* Am folosit Pandas și Polars in paralel ceea ce a complicat codul fără motiv.
+* Nu am introdus date invalide pentru a le curata (0, -10, INVALID etc.).
+* Nu am creat un ID pentru tabela care sa tina usor evidenta randului
+
+--- + Ce ar fi trbuit sa fac ---
+
+* Sa generez date folosind o singura metoda care sa cuprinda toate coloanele cu tipul de date corect
+* Sa generez si date neconforme pentru a le putea elimina ulterior in partea de curatare
+* Sa creez partea de creare date in alt fisier pentru a mentine structura in aplicatie
+* Sa creez un ID care sa fie sortat dupa TimeStamp pentru a simula situatiile reale si a tine usor evidenta datelor (ca si coloana de legatura)
+
+
+==== - Probleme inițiale in Task 2 – Data Cleaning ====
+
+* `dropna()` era aplicat pe Pandas în buclă → pierzi date valide.
+* Verificarea BUY/SELL era făcută in toate datele, nu doar pe coloana Side.
+* Anomaliile erau detectate prin iterare per coloană
+* Datele neconforme nu erau afisate
+
+--- + Ce ar fi trbuit sa fac ---
+
+* Sa folosesc o structura mai eficienta si mai putin instabila la probleme pentru curatarea datelor
+* Sa afisez ID + valorile invalide la reporting
+* Sa structurez clar problemele (missing, invalid_qty, invalid_price etc.)
+
+
+==== - Probleme inițiale in Task 3 – SQL Analytics ===
+
+* Ai populat tabela Trades greșit, fara sa folosesc ";" la final ceea ce rezulta in erori si nepopulare de tabela
+* Calculul net_position era greșit, nu există coloanele Buy si Sell
+
+--- + Ce ar fi trbuit sa fac ---
+
+* Sa creez un fisier separat pentru partea de cod in care se fac interogarile in SQL
+* Sa scriu codul SQL fara erori
+
+
+==== - Probleme inițiale in Task 4 – API FastAPI ===
+
+* Endpoints returnau funcții, nu rezultate. Functiile se terminau in "print()" ceea ce nu era corect pentru afisarea in HTML
+* FastAPI era rulat în interiorul scriptului lung ceea ce cauza blocaje.
+
+--- + Ce ar fi trbuit sa fac ---
+
+* Sa creez API separat
+* "/api/summary" trebuie sa returnează JSON curat din DB
+* "/api/trend/{symbol}" trebuie sa returnează date reale
+* Dashboard JS trebuie sa ruleaze API, nu Python
+
+
+==== - Probleme inițiale in Task 5 – Dashboard ===
+
+* Plotly era lansat cu "pie.show()" ceea ce deschide fereastra locală, nu web.
+* Nu exista HTML static.
+* API-ul nu era folosit.
+* Fără interactivitate.
+* Site-ul web nu rula corespunzator
+
+--- + Ce ar fi trbuit sa fac ---
+
+* Sa creez un document HTML pentru website 
+* Sa creez corect legatura cu datele
+* Sa utilizez Chart.js pentru dashboard interactiv
